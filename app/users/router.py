@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from app.users.schemas import RegUser, AuthUser
 from app.users.dao import UserDAO
 from app.auth import get_password_hash, authenticate_user
-import uuid
+import random
+import string
 from app.users.auth import create_access_token, create_refresh_token
 from app.users.dependencies import get_current_user
 from app.users.models import User
@@ -43,7 +44,7 @@ async def regiser_user(user_data: RegUser):
     
     
     
-    token = str(uuid.uuid4())
+    token = ''.join(random.choices(string.digits, k=6))
     
     await redis_client.set(f'confirm:{token}', user_data.email, ex=86400)
     
@@ -52,7 +53,7 @@ async def regiser_user(user_data: RegUser):
     return {'message': 'You successfully registered. Please check your email to verify account'}
 
 
-
+#####EMAIL
 @users_router.get('/confirm')
 async def confirm_email(token: str):
     email = await redis_client.get(f'confirm:{token}')
@@ -67,6 +68,25 @@ async def confirm_email(token: str):
     await redis_client.delete(f'confirm:{token}')
     
     return {'messge': 'Email verified'}
+
+
+@users_router.post('/resend-confirmation')
+async def resend_confirmation(email: str):
+    user = await UserDAO.find_one_or_none(email=email)
+    
+    if not user:
+        raise HTTPException(status_code=404)
+    
+    if user.is_active:
+        return {'message': 'You already confirmed'}
+    
+    new_token = ''.join(random.choices(string.digits, k=6))
+    
+    await redis_client.set(f'confirm:{new_token}', email, ex=86400)
+    
+    send_confirmation_email.delay(email, new_token)
+    
+    return {'message': 'Email sended'}
 
 
 
