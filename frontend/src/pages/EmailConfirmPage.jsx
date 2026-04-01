@@ -1,64 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // 1. Импортируем хук
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function EmailConfirmPage() {
-    const [code, setCode] = useState(''); 
-    const [status, setStatus] = useState('idle'); 
-    const [message, setMessage] = useState('');
+    const [status, setStatus] = useState('loading');
+    const [message, setMessage] = useState('Подтверждаем почту...');
+    const navigate = useNavigate(); // 2. Инициализируем
 
-    const handleConfirm = async (e) => {
-        e.preventDefault();
-        setStatus('loading');
+    useEffect(() => {
+        const confirmEmail = async () => {
+            const query = new URLSearchParams(window.location.search);
+            const token = query.get('token');
 
-        try {
-            
-            const response = await fetch(`${API_URL}/users/confirm?token=${code}`, {
-                method: 'GET',
-            });
-
-            if (response.ok) {
-                setStatus('success');
-                setMessage('Почта подтверждена!');
-            } else {
-                const data = await response.json();
-                throw new Error(data.detail || 'Неверный код');
+            if (!token) {
+                setStatus('error');
+                setMessage('Токен не найден');
+                return;
             }
-        } catch (err) {
-            setStatus('error');
-            setMessage(err.message);
-        }
-    };
+
+            try {
+                const response = await fetch(`${API_URL}/users/confirm?token=${token}`, {
+                    method: 'GET',
+                });
+
+                if (response.ok) {
+                    setStatus('success');
+                    setMessage('Почта успешно подтверждена! Переходим в профиль...');
+                    
+                    // 3. Редирект через 2 секунды в профиль
+                    setTimeout(() => {
+                        navigate("/profile");
+                    }, 2000);
+
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.detail || 'Ошибка подтверждения');
+                }
+            } catch (err) {
+                setStatus('error');
+                setMessage(err.message);
+            }
+        };
+
+        confirmEmail();
+    }, [navigate]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="bg-white p-8 rounded-2xl shadow-lg w-96 text-center">
-                <h2 className="text-2xl font-bold mb-4">Введите код</h2>
-                <p className="text-gray-500 mb-6">Мы отправили 6 цифр на ваш email</p>
-
-                <form onSubmit={handleConfirm} className="space-y-4">
-                    <input 
-                        type="text"
-                        maxLength="6"
-                        placeholder="000000"
-                        className="text-center text-3xl letter-spacing-2 w-full p-3 border-2 rounded-xl focus:border-blue-500 outline-none text-black font-mono"
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} // Только цифры
-                    />
-                    
-                    <button 
-                        disabled={code.length !== 6 || status === 'loading'}
-                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 disabled:bg-gray-300 transition-all"
-                    >
-                        {status === 'loading' ? 'Проверка...' : 'Подтвердить'}
-                    </button>
-                </form>
-
-                {message && (
-                    <p className={`mt-4 ${status === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                        {message}
-                    </p>
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 text-black">
+            <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center border border-gray-200">
+                <h1 className="text-2xl font-bold mb-4">Подтверждение</h1>
+                
+                {status === 'loading' && (
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 )}
+
+                {status === 'success' && (
+                    <div className="text-green-500 text-5xl mb-4 animate-bounce">✓</div>
+                )}
+
+                {status === 'error' && (
+                    <div className="text-red-500 text-5xl mb-4">✕</div>
+                )}
+
+                <p className={`text-lg ${status === 'error' ? 'text-red-600' : 'text-gray-700'}`}>
+                    {message}
+                </p>
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 
 // 1. Добавляем .env
@@ -44,15 +44,15 @@ export default function RegisterForm() {
     if (isRegister) {
         return (
             <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
-                <h3 className="text-green-800 font-bold text-lg">Почти готово!</h3>
-                <p className="text-green-700">Мы отправили код подтверждения на <b>{regData.email}</b>. Проверьте почту.</p>
+                <h3 className="text-green-800 font-bold text-lg">Almost ready!</h3>
+                <p className="text-green-700">We sent verification code on <b>{regData.email}</b>. Check your email.</p>
             </div>
         )
     }
 
     return (
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
-            <h2 className="text-xl font-bold text-gray-800">Регистрация</h2>
+            <h2 className="text-xl font-bold text-gray-800">Registration</h2>
             
             {error && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</p>}
 
@@ -86,6 +86,14 @@ export default function RegisterForm() {
             >
                 Create an account
             </button>
+
+
+            <p className="mt-4 text-sm text-gray-400 text-center">
+                Already have account?{" "}
+                <Link to="/login" className="text-blue-500 hover:underline">
+                    Login here
+                </Link>
+            </p>
         </form>
     )
 }
