@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,8 +10,8 @@ export default function AuthForm() {
         password: '', 
     });
     const [ error, setError ] = useState('')
-    const [ isAuthorised, setIsAuthorised ] = useState(false);
-    
+    const navigate = useNavigate();
+
     const handleAuth = async (e) => {
         e.preventDefault();
         setError('');
@@ -24,18 +25,19 @@ export default function AuthForm() {
             });
             if (response.ok) {
                 alert('You successfully authorised')
-                setIsAuthorised(false)
+                navigate('/profile')
             } else {
                 const data = await response.json()
-                throw new Error(data.detail || 'Mistake authorasation')
+                throw new Error(data.detail || 'Authorization error')
             };
         } catch (err) { setError(err.message) }
     };
 
     return (
-        <form>
+        <form onSubmit={handleAuth}>
             <div>
                 <p>Authorisation</p>
+                {error && <p style={{color: 'red', fontSize: '14px'}}>{error}</p>}
                 <div>
                     <input 
                     type="text"
@@ -47,7 +49,7 @@ export default function AuthForm() {
 
                 <div>
                     <input 
-                    type="text"
+                    type="password"
                     placeholder="password"
                     value={AuthData.password} 
                     onChange={(e) => setAuthData({...AuthData, password: e.target.value})}

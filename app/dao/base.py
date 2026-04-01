@@ -21,17 +21,15 @@ class BaseDAO:
             
     @classmethod
     async def update(cls, model_id: int, **data):
+        if not data:
+            return None
+            
         async with async_session() as session:
             query = (
                 update(cls.model)
                 .where(cls.model.id == model_id)
                 .values(**data)
             )
-            
-            if not data:
-                return None
-            
-            
             await session.execute(query)
             await session.commit()
             

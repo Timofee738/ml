@@ -1,6 +1,3 @@
-from app.users.models import User
-
-
 from celery import Celery
 from celery.schedules import crontab
 

@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import RegisterForm from "../components/RegisterForm";
 import Layout from "../components/Layout";
 

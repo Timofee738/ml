@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Request
 from app.users.schemas import RegUser, AuthUser
 from app.users.dao import UserDAO
-from app.auth import get_password_hash, authenticate_user
+from app.auth import get_password_hash, verify_password
 import random
 import string
 from app.users.auth import create_access_token, create_refresh_token
@@ -27,22 +27,18 @@ redis_client = aioredis.from_url(
 
 
 @users_router.post('/register')
-async def regiser_user(user_data: RegUser):
+async def register_user(user_data: RegUser):
     existing_user = await UserDAO.find_one_or_none(email=user_data.email)
     if existing_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='User with this email is already registered')
     
     hashed_password = get_password_hash(user_data.password)
     
-    
-    
     await UserDAO.add(
         username=user_data.username,
         email=user_data.email,
         hashed_password=hashed_password,
     )
-    
-    
     
     token = ''.join(random.choices(string.digits, k=6))
     
@@ -55,7 +51,7 @@ async def regiser_user(user_data: RegUser):
 
 #####EMAIL
 @users_router.get('/confirm')
-async def confirm_email(token: str):
+async def confirm_email(token: str, response: Response):
     email = await redis_client.get(f'confirm:{token}')
     if not email:
         raise HTTPException(status_code=400, detail='Token is invalid or expired')
@@ -67,7 +63,13 @@ async def confirm_email(token: str):
     await UserDAO.update(model_id=user.id, is_active=True)
     await redis_client.delete(f'confirm:{token}')
     
-    return {'messge': 'Email verified'}
+    access_token = create_access_token({'sub': str(user.id)})
+    refresh_token = create_refresh_token({'sub': str(user.id)})
+    
+    response.set_cookie('user_access_token',access_token)
+    response.set_cookie('user_refresh_token', refresh_token)
+    
+    return {'message': 'Email verified'}
 
 
 @users_router.post('/resend-confirmation')
@@ -86,7 +88,7 @@ async def resend_confirmation(email: str):
     
     send_confirmation_email.delay(email, new_token)
     
-    return {'message': 'Email sended'}
+    return {'message': 'Email sent'}
 
 
 
@@ -96,7 +98,13 @@ async def resend_confirmation(email: str):
 async def login_user(response: Response, user_data: AuthUser):
     user = await UserDAO.find_one_or_none(email=user_data.email)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Wrong email')
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Wrong email or password')
+    
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Email not verified')
+    
+    if not verify_password(user_data.password, user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Wrong email or password')
     
     access_token = create_access_token({'sub': str(user.id)})
     refresh_token = create_refresh_token({'sub': str(user.id)})
