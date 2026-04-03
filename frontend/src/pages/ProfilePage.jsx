@@ -45,7 +45,7 @@ export default function ProfilePage() {
     };
 
 
-    if (loading) return <div className="text-center mt-20 text-white">Загрузка профиля...</div>;
+    if (loading) return <div className="text-center mt-20 text-white">Profile loading...</div>;
     
     if (error) return <div className="text-center mt-20 text-red-500">{error}</div>;
 
@@ -69,19 +69,11 @@ export default function ProfilePage() {
                         </div>
                     )}
 
-                    
-                    <div className="bg-gray-700 w-full p-4 rounded-2xl mb-6 flex justify-between items-center">
-                        <span className="text-gray-300">Ваш баланс:</span>
-                        <span className="text-2xl font-mono font-bold text-green-400">
-                            ${user.balance}
-                        </span>
-                    </div>
-
                     <button 
                         onClick={handleLogout}
                         className="w-full bg-red-600/20 text-red-500 py-3 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all border border-red-900/50"
                     >
-                        Выйти из аккаунта
+                        Logout
                     </button>
                 </div>
             </div>

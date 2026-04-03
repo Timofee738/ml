@@ -5,20 +5,16 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.config import settings
 from app.database import Base
 from app.users.models import User
+from app.posts.models import Post
+from app.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-url= settings.DATABASE_URL
-
-if '+asyncpg' in url:
-    url = url.replace('+asyncpg', '+psycopg')
-    
-config.set_main_option('sqlalchemy.url', url)
+url = settings.DATABASE_URL.replace("asyncpg", "psycopg")
+config.set_main_option("sqlalchemy.url", url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -87,3 +83,5 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+

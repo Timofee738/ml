@@ -40,7 +40,7 @@ services:
   app:
     build: .
     container_name: ai_image_app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: ./scripts/entrypoint.sh
     ports:
       - "8000:8000"
     environment:

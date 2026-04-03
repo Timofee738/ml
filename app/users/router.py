@@ -120,8 +120,7 @@ async def get_user(user: User = Depends(get_current_user)):
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        'is_active': user.is_active,
-        'balance': user.balance
+        'is_active': user.is_active
     }
     
 @users_router.post('/logout')

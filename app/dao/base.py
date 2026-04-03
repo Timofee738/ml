@@ -1,5 +1,6 @@
 from app.database import async_session
 from sqlalchemy import insert, select, update, delete
+from sqlalchemy.orm import joinedload
 
 class BaseDAO:
     model = None
@@ -10,7 +11,17 @@ class BaseDAO:
             query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
             return result.scalars().one_or_none()
-    
+        
+        
+    @classmethod
+    async def find_all(cls):
+        async with async_session() as session:
+            query = (select(cls.model).options(joinedload(cls.model.author)).order_by(cls.model.created_at.desc()))
+            
+            result = await session.execute(query)
+            return result.scalars().all()
+            
+            
     @classmethod
     async def add(cls, **data):
         async with async_session() as session:
@@ -40,3 +51,10 @@ class BaseDAO:
             query = delete(cls.model).filter_by(**filter_by)
             await session.execute(query)
             await session.commit()
+            
+    @classmethod
+    async def find_smth_from(cls, **filter_by):
+        async with async_session() as session:
+            query = select(cls.model).filter_by(**filter_by)
+            result = await session.execute(query)
+            return result.scalars().all()
