@@ -4,80 +4,83 @@ import { useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ProfilePage() {
-    const [user, setUser] = useState(null)
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null)
-    const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try{
-                const response = await fetch(`${API_URL}/users/profile`, {
-                    method: 'GET',
-                    credentials: 'include',
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                } else if (response.status === 401) {
-                    navigate('/login')
-                } else {
-                    throw new Error('Не удалось загрузить профиль')
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false)
-            }
-        };
-
-        fetchProfile();
-    }, [navigate]);
-
-    const handleLogout = async () => {
-        await fetch(`${API_URL}/users/logout`, {
-            method: 'POST', 
-            credentials: 'include'
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/users/profile`, {
+          method: "GET",
+          credentials: "include",
         });
-        navigate('/login');
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data);
+        } else if (response.status === 401) {
+          navigate("/login");
+        } else {
+          throw new Error("failed to load profile");
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
+    fetchProfile();
+  }, [navigate]);
 
-    if (loading) return <div className="text-center mt-20 text-white">Profile loading...</div>;
-    
-    if (error) return <div className="text-center mt-20 text-red-500">{error}</div>;
+  const handleLogout = async () => {
+    await fetch(`${API_URL}/users/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    navigate("/login");
+  };
 
-    return (
-        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-            <div className="bg-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-gray-700">
-                <div className="flex flex-col items-center">
-                    
-                    <div className="w-24 h-24 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl font-bold mb-4">
-                        {user.username[0].toUpperCase()}
-                    </div>
-                    
-                    <h1 className="text-2xl font-black">{user.username}</h1>
-                    <p className="text-gray-400 mb-6">{user.email}</p>
+  if (loading) return <div className="feed-bg min-h-screen p-8 text-center text-slate-200">loading profile...</div>;
+  if (error) return <div className="feed-bg min-h-screen p-8 text-center text-red-300">{error}</div>;
 
-                    
-                    {!user.is_active && (
-                        <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-500 p-3 rounded-xl mb-6 text-sm text-center">
-                            ⚠️ Почта не подтверждена. <br />
-                            <button onClick={() => navigate('/confirm')} className="underline font-bold">Подтвердить сейчас</button>
-                        </div>
-                    )}
+  return (
+    <div className="feed-bg noise-layer relative min-h-screen p-4 text-slate-100">
+      <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-700/40 bg-slate-900/55 p-7 backdrop-blur-xl">
+        <div className="flex flex-col items-center">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-400/20 text-2xl font-semibold text-emerald-200">
+            {user.username?.[0] || "u"}
+          </div>
 
-                    <button 
-                        onClick={handleLogout}
-                        className="w-full bg-red-600/20 text-red-500 py-3 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all border border-red-900/50"
-                    >
-                        Logout
-                    </button>
-                </div>
+          <h1 className="text-xl font-semibold">{user.username}</h1>
+          <p className="mb-5 text-sm text-slate-400">{user.email}</p>
+
+          {!user.is_active && (
+            <div className="mb-5 w-full rounded-xl border border-yellow-700/60 bg-yellow-900/20 p-3 text-center text-sm text-yellow-300">
+              email is not verified.
+              <button onClick={() => navigate("/confirm")} className="ml-1 underline">
+                verify now
+              </button>
             </div>
-        </div>
-    );
+          )}
 
+          <button
+            onClick={() => navigate("/feed")}
+            className="mb-3 w-full rounded-xl border border-emerald-700/40 bg-emerald-500/15 py-2 text-sm font-medium text-emerald-200 hover:bg-emerald-500/25"
+          >
+            open feed
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full rounded-xl border border-red-900/50 bg-red-500/10 py-2 text-sm font-medium text-red-300 hover:bg-red-500/20"
+          >
+            logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

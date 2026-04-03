@@ -1,75 +1,72 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 export default function AuthForm() {
-    const [ AuthData, setAuthData ] = useState({
-        email: '',
-        password: '', 
-    });
-    const [ error, setError ] = useState('')
-    const navigate = useNavigate();
+  const [authData, setAuthData] = useState({
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    const handleAuth = async (e) => {
-        e.preventDefault();
-        setError('');
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setError("");
 
-        try {
-            const response = await fetch(`${API_URL}/users/login` , {
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(AuthData)
-            });
-            if (response.ok) {
-                navigate('/profile')
-            } else {
-                const data = await response.json()
-                throw new Error(data.detail || 'Authorization error')
-            };
-        } catch (err) { setError(err.message) }
-    };
+    try {
+      const response = await fetch(`${API_URL}/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(authData),
+      });
 
-    return (
-        <form onSubmit={handleAuth} className="flex flex-col gap-4">
-            
-                 <h2 className="text-xl font-bold text-gray-800">Authorisation</h2>
-                {error && <p className="text-red-500 text-sm bg-red-50 p-2 rounded">{error}</p>}
-                
-            <input 
-            type="text"
-            placeholder="email"
-            className="border p-2 rounded-lg text-black outline-none focus:ring-2 focus:ring-blue-500"
-            value={AuthData.email} 
-            onChange={(e) => setAuthData({...AuthData, email: e.target.value})}
-            />
+      if (response.ok) {
+        navigate("/feed");
+      } else {
+        const data = await response.json();
+        throw new Error(data.detail || "login error");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
+  return (
+    <form onSubmit={handleAuth} className="flex flex-col gap-4">
+      {error && <p className="rounded-xl border border-red-900 bg-red-950/40 p-2 text-sm text-red-300">{error}</p>}
 
-            <input 
-            type="password"
-            placeholder="password"
-            className="border p-2 rounded-lg text-black outline-none focus:ring-2 focus:ring-blue-500"
-            value={AuthData.password} 
-            onChange={(e) => setAuthData({...AuthData, password: e.target.value})}
-            />
-            
+      <input
+        type="email"
+        placeholder="email"
+        className="rounded-xl border border-slate-700/70 bg-slate-950/80 p-3 text-slate-100 outline-none transition focus:border-emerald-400/70"
+        value={authData.email}
+        onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
+      />
 
-            <button 
-                type="submit"
-                className="bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 transition-all active:scale-95"
-            >
-                Authorise
-            </button>
-                
-            <p className="mt-4 text-sm text-gray-400 text-center">
-                First time here?{" "}
-                <Link to="/register" className="text-blue-500 hover:underline">
-                    Register
-                </Link>
-            </p>
-        </form>
-    )
+      <input
+        type="password"
+        placeholder="password"
+        className="rounded-xl border border-slate-700/70 bg-slate-950/80 p-3 text-slate-100 outline-none transition focus:border-emerald-400/70"
+        value={authData.password}
+        onChange={(e) => setAuthData({ ...authData, password: e.target.value })}
+      />
 
+      <button
+        type="submit"
+        className="rounded-xl bg-emerald-400 py-2 font-semibold text-slate-950 transition hover:bg-emerald-300"
+      >
+        login
+      </button>
+
+      <p className="mt-2 text-center text-sm text-slate-400">
+        first time here?{" "}
+        <Link to="/register" className="text-emerald-300 hover:underline">
+          register
+        </Link>
+      </p>
+    </form>
+  );
 }

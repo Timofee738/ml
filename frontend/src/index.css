@@ -1,1 +1,28 @@
 @import "tailwindcss";
+
+:root {
+  font-family: "Manrope", "Segoe UI", "Inter", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #02050a;
+  color: #d7dee8;
+}
+
+.feed-bg {
+  background:
+    radial-gradient(65rem 45rem at 28% -8%, rgba(0, 255, 170, 0.2), transparent 52%),
+    radial-gradient(48rem 36rem at 80% 22%, rgba(0, 100, 255, 0.18), transparent 58%),
+    linear-gradient(180deg, #03070f 0%, #02050b 60%, #010308 100%);
+}
+
+.noise-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 0.8px, transparent 0.8px);
+  background-size: 2px 2px;
+  opacity: 0.2;
+  pointer-events: none;
+}
