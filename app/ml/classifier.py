@@ -13,6 +13,10 @@ if not os.path.exists(MODEL_PATH):
 model = joblib.load(MODEL_PATH)
 
 
-def predict_spam(text: str) -> bool:
-    prediction = model.predict([text])[0]
-    return bool(prediction)
+def predict_spam_score(text: str) -> float:
+    probabilities = model.predict_proba([text])[0]
+    return float(probabilities[1])
+
+
+def predict_spam(text: str, threshold: float = 0.5) -> bool:
+    return predict_spam_score(text) >= threshold

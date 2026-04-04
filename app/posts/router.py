@@ -6,7 +6,7 @@ from app.users.models import User
 
 
 
-from app.ml.classifier import predict_spam
+from app.ml.classifier import predict_spam, predict_spam_score
 
 posts_router = APIRouter(
     prefix='/posts',
@@ -18,13 +18,15 @@ posts_router = APIRouter(
 async def create_post(post_data: PostCreate, user: User = Depends(get_current_user)):
 
 
-    is_spam_detected = predict_spam(post_data.content)
+    spam_score = predict_spam_score(post_data.content)
+    is_spam = predict_spam(post_data.content)
     
     await PostDAO.add(
         user_id=user.id,
         content=post_data.content,
         image_url=post_data.image_url,
-        is_spam=is_spam_detected
+        spam_score=spam_score,
+        is_spam=is_spam
     )
     
     return {'message': 'Post added'}
