@@ -17,8 +17,6 @@ class Post(Base):
     
     content: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(255))
-    is_spam: Mapped[bool]
-    spam_score: Mapped[float] = mapped_column(default=0.0)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     
     author: Mapped['User'] = relationship(back_populates='posts')
