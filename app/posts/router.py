@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.posts.schemas import PostCreate
 from app.posts.dao import PostDAO
 from app.users.dependencies import get_current_user
@@ -6,7 +6,6 @@ from app.users.models import User
 
 
 
-from app.ml.classifier import predict_spam, predict_spam_score
 
 posts_router = APIRouter(
     prefix='/posts',
@@ -35,4 +34,13 @@ async def all_post():
 async def get_user_posts(user: User = Depends(get_current_user)):
     posts = await PostDAO.find_smth_from(user_id=user.id)
     return posts
+
+@posts_router.post('/delete')
+async def delete_post(post_id: int, user: User = Depends(get_current_user)):
+    existing_post = PostDAO.find_smth_from(post_id=post_id, user_id=user.id)
+    if not existing_post:
+        raise HTTPException(status_code=404, detail='Post not found')
+    await PostDAO.delete(post_id=post_id, user_id=user.id)
+        
+
 

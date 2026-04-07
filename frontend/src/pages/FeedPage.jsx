@@ -178,11 +178,6 @@ export default function FeedPage() {
                         <p className="text-xs text-slate-400">{formatDate(post.created_at)}</p>
                       </div>
                     </div>
-                    {typeof post.spam_score === "number" && (
-                      <div className="rounded-full border border-slate-600/70 bg-slate-950/70 px-3 py-1 text-xs text-slate-300">
-                        spam score: {post.spam_score.toFixed(2)}
-                      </div>
-                    )}
                   </div>
 
                   <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{post.content}</p>
