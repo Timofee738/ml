@@ -1,6 +1,6 @@
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, Text, String, func
+from sqlalchemy import ForeignKey, Text, String, func, Integer
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 
@@ -18,6 +18,7 @@ class Post(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    likes: Mapped[int] = mapped_column(Integer, default=0)
     
     author: Mapped['User'] = relationship(back_populates='posts')
     

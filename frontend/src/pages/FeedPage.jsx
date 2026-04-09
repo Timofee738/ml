@@ -12,12 +12,24 @@ function formatDate(rawDate) {
 
 export default function FeedPage() {
   const [posts, setPosts] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
   const navigate = useNavigate();
+
+  const resolveImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
+    }
+    return `${API_URL}${imagePath}`;
+  };
 
   const fetchPosts = async () => {
     setError("");
@@ -42,6 +54,33 @@ export default function FeedPage() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch(`${API_URL}/users/profile`, {
+          method: "GET",
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUserId(data.id);
+        }
+      } catch {
+        setCurrentUserId(null);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleCreatePost = async (event) => {
     event.preventDefault();
     setError("");
@@ -52,14 +91,16 @@ export default function FeedPage() {
 
     setIsPublishing(true);
     try {
+      const formData = new FormData();
+      formData.append("content", content.trim());
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
       const response = await fetch(`${API_URL}/posts/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          content: content.trim(),
-          image_url: imageUrl.trim() || null,
-        }),
+        body: formData,
       });
 
       if (response.status === 401) {
@@ -72,12 +113,55 @@ export default function FeedPage() {
       }
 
       setContent("");
-      setImageUrl("");
+      setSelectedImage(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl("");
+      }
       await fetchPosts();
     } catch (err) {
       setError(err.message || "failed to create post");
     } finally {
       setIsPublishing(false);
+    }
+  };
+
+  const openDeleteConfirm = (event, postId) => {
+    event.stopPropagation();
+    setDeleteTargetId(postId);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (isDeleting) return;
+    setDeleteTargetId(null);
+  };
+
+  const handleDeletePost = async () => {
+    if (!deleteTargetId) return;
+
+    setError("");
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`${API_URL}/posts/${deleteTargetId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        navigate("/login");
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "failed to delete post");
+      }
+
+      setPosts((prev) => prev.filter((post) => post.id !== deleteTargetId));
+      setDeleteTargetId(null);
+    } catch (err) {
+      setError(err.message || "failed to delete post");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -105,9 +189,6 @@ export default function FeedPage() {
           <h1 className="mb-2 max-w-2xl text-2xl font-semibold leading-tight text-slate-100 md:text-3xl">
             feed posts
           </h1>
-          <p className="max-w-2xl text-sm text-slate-300/90 md:text-base">
-            publish content, read fresh posts and grow your media project with transparent ai moderation.
-          </p>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[1.05fr_1.35fr]">
@@ -121,13 +202,34 @@ export default function FeedPage() {
                 className="min-h-32 w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 p-4 text-sm outline-none transition focus:border-emerald-400/70"
                 maxLength={5000}
               />
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="image url (optional)"
-                className="w-full rounded-2xl border border-slate-700/70 bg-slate-950/80 p-4 text-sm outline-none transition focus:border-emerald-400/70"
-              />
+              <div className="space-y-2">
+                <label className="inline-block cursor-pointer rounded-xl border border-slate-700/70 bg-slate-950/80 px-4 py-2 text-sm text-slate-200 hover:border-emerald-400/60">
+                  upload image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setSelectedImage(file);
+                      if (previewUrl) {
+                        URL.revokeObjectURL(previewUrl);
+                      }
+                      setPreviewUrl(file ? URL.createObjectURL(file) : "");
+                    }}
+                  />
+                </label>
+                {selectedImage && (
+                  <p className="text-xs text-slate-400">selected: {selectedImage.name}</p>
+                )}
+                {previewUrl && (
+                  <img
+                    src={previewUrl}
+                    alt="preview"
+                    className="max-h-56 w-full rounded-xl border border-slate-700/60 object-cover"
+                  />
+                )}
+              </div>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-slate-400">{content.length}/5000</p>
                 <button
@@ -139,10 +241,6 @@ export default function FeedPage() {
                 </button>
               </div>
             </form>
-
-            <div className="mt-5 rounded-2xl border border-slate-700/50 bg-slate-950/60 p-4 text-sm text-slate-300">
-              ai moderation checks every post. if spam score is high, send it to manual review.
-            </div>
           </section>
 
           <section className="space-y-4">
@@ -164,7 +262,8 @@ export default function FeedPage() {
               posts.map((post) => (
                 <article
                   key={post.id}
-                  className="rounded-3xl border border-slate-700/45 bg-slate-900/55 p-5 backdrop-blur-xl"
+                  onClick={() => navigate(`/posts/${post.id}`)}
+                  className="cursor-pointer rounded-3xl border border-slate-700/45 bg-slate-900/55 p-5 backdrop-blur-xl transition hover:border-emerald-400/40"
                 >
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -178,12 +277,29 @@ export default function FeedPage() {
                         <p className="text-xs text-slate-400">{formatDate(post.created_at)}</p>
                       </div>
                     </div>
+                    {currentUserId === post.user_id && (
+                      <button
+                        type="button"
+                        onClick={(event) => openDeleteConfirm(event, post.id)}
+                        className="rounded-lg border border-red-900/60 bg-red-900/20 p-2 text-red-300 transition hover:bg-red-900/40"
+                        aria-label="delete post"
+                        title="delete post"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4h8v2" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
 
                   <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">{post.content}</p>
                   {post.image_url && (
                     <img
-                      src={post.image_url}
+                      src={resolveImageUrl(post.image_url)}
                       alt="post visual"
                       className="max-h-[28rem] w-full rounded-2xl border border-slate-700/60 object-cover"
                       loading="lazy"
@@ -195,6 +311,35 @@ export default function FeedPage() {
           </section>
         </div>
       </div>
+
+      {deleteTargetId && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-700/70 bg-slate-900/95 p-5 shadow-2xl">
+            <h3 className="mb-2 text-base font-semibold text-slate-100">delete post?</h3>
+            <p className="mb-4 text-sm text-slate-300">
+              this action cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl border border-slate-700/70 bg-slate-950/80 py-2 text-sm text-slate-200 hover:border-slate-500/70 disabled:opacity-60"
+              >
+                cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeletePost}
+                disabled={isDeleting}
+                className="flex-1 rounded-xl border border-red-900/60 bg-red-900/30 py-2 text-sm font-semibold text-red-200 hover:bg-red-900/50 disabled:opacity-60"
+              >
+                {isDeleting ? "deleting..." : "delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,7 +11,7 @@ python-multipart==0.0.6
 sqlalchemy==2.0.31
 asyncpg==0.31.0
 alembic==1.18.4
-psycopg[binary]==3.1.18
+psycopg[binary]==3.3.3
 
 # ============================================
 # Pydantic & Validation
@@ -37,7 +37,13 @@ kombu==5.3.4
 # Utilities
 # ============================================
 python-dotenv==1.0.0
-click==8.1.7
+click>=8.2.1
 dnspython==2.8.0
+aiofiles==24.1.0
 
 
+# ============================================
+# ML
+# ============================================
+#sentence-transformers
+#chromadb

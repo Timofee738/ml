@@ -2,11 +2,16 @@ from fastapi import FastAPI
 from app.users.router import users_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.posts.router import posts_router
+from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI()
 
 app.include_router(users_router)
 app.include_router(posts_router)
+
+os.makedirs("media/posts", exist_ok=True)
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 
 @app.get('/')

@@ -25,7 +25,8 @@ export default function RegisterForm() {
 
       const data = await response.json();
       if (response.ok) {
-        navigate("/confirm");
+        localStorage.setItem("pending_confirm_email", regData.email);
+        navigate("/confirm", { state: { email: regData.email } });
       } else {
         throw new Error(data.detail || "registration error");
       }

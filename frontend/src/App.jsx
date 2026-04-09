@@ -4,6 +4,7 @@ import AuthPage from "./pages/AuthPage";
 import EmailConfirmPage from "./pages/EmailConfirmPage";
 import ProfilePage from "./pages/ProfilePage";
 import FeedPage from "./pages/FeedPage";
+import PostPage from "./pages/PostPage";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/confirm" element={<EmailConfirmPage />} />
         <Route path="/" element={<FeedPage />} />
         <Route path="/feed" element={<FeedPage />} />
+        <Route path="/posts/:postId" element={<PostPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
