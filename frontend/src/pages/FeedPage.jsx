@@ -13,6 +13,7 @@ function formatDate(rawDate) {
 export default function FeedPage() {
   const [posts, setPosts] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [likeInProgressId, setLikeInProgressId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
@@ -92,7 +93,10 @@ export default function FeedPage() {
     setIsPublishing(true);
     try {
       const formData = new FormData();
-      formData.append("content", content.trim());
+      const normalizedContent = content.trim();
+      const autoTitle = normalizedContent.length > 80 ? `${normalizedContent.slice(0, 80)}...` : normalizedContent;
+      formData.append("title", autoTitle);
+      formData.append("content", normalizedContent);
       if (selectedImage) {
         formData.append("image", selectedImage);
       }
@@ -162,6 +166,71 @@ export default function FeedPage() {
       setError(err.message || "failed to delete post");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleToggleLike = async (event, post) => {
+    event.stopPropagation();
+    if (likeInProgressId !== null) return;
+
+    const wasLiked = Boolean(post.liked_by_me);
+    const endpoint = wasLiked ? "unlike" : "like";
+
+    setLikeInProgressId(post.id);
+    setPosts((prev) =>
+      prev.map((item) =>
+        item.id === post.id
+          ? {
+              ...item,
+              liked_by_me: !wasLiked,
+              likes_count: Math.max(0, (item.likes_count || 0) + (wasLiked ? -1 : 1)),
+            }
+          : item,
+      ),
+    );
+
+    try {
+      const response = await fetch(`${API_URL}/posts/${post.id}/${endpoint}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        navigate("/login");
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "failed to update like");
+      }
+
+      const payload = await response.json().catch(() => ({}));
+      setPosts((prev) =>
+        prev.map((item) =>
+          item.id === post.id
+            ? {
+                ...item,
+                liked_by_me: Boolean(payload.liked_by_me),
+                likes_count: Number.isFinite(payload.likes_count) ? payload.likes_count : item.likes_count || 0,
+              }
+            : item,
+        ),
+      );
+    } catch (err) {
+      setPosts((prev) =>
+        prev.map((item) =>
+          item.id === post.id
+            ? {
+                ...item,
+                liked_by_me: wasLiked,
+                likes_count: Math.max(0, (item.likes_count || 0) + (wasLiked ? 1 : -1)),
+              }
+            : item,
+        ),
+      );
+      setError(err.message || "failed to update like");
+    } finally {
+      setLikeInProgressId(null);
     }
   };
 
@@ -305,6 +374,21 @@ export default function FeedPage() {
                       loading="lazy"
                     />
                   )}
+                  <div className="mt-4 flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={(event) => handleToggleLike(event, post)}
+                      disabled={likeInProgressId === post.id}
+                      className={`rounded-xl border px-3 py-1.5 text-sm transition ${
+                        post.liked_by_me
+                          ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-200"
+                          : "border-slate-700/70 bg-slate-950/70 text-slate-300 hover:border-emerald-400/50"
+                      } disabled:opacity-60`}
+                    >
+                      {post.liked_by_me ? "unlike" : "like"}
+                    </button>
+                    <span className="text-xs text-slate-400">likes: {post.likes_count || 0}</span>
+                  </div>
                 </article>
               ))
             )}

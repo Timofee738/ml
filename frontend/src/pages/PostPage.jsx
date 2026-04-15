@@ -14,6 +14,7 @@ export default function PostPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
   const [post, setPost] = useState(null);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -53,6 +54,64 @@ export default function PostPage() {
 
     fetchPost();
   }, [postId]);
+
+  const handleToggleLike = async () => {
+    if (!post || isLikeLoading) return;
+
+    const wasLiked = Boolean(post.liked_by_me);
+    const endpoint = wasLiked ? "unlike" : "like";
+
+    setIsLikeLoading(true);
+    setPost((prev) =>
+      prev
+        ? {
+            ...prev,
+            liked_by_me: !wasLiked,
+            likes_count: Math.max(0, (prev.likes_count || 0) + (wasLiked ? -1 : 1)),
+          }
+        : prev,
+    );
+
+    try {
+      const response = await fetch(`${API_URL}/posts/${postId}/${endpoint}`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        navigate("/login");
+        return;
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "failed to update like");
+      }
+
+      const payload = await response.json().catch(() => ({}));
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              liked_by_me: Boolean(payload.liked_by_me),
+              likes_count: Number.isFinite(payload.likes_count) ? payload.likes_count : prev.likes_count || 0,
+            }
+          : prev,
+      );
+    } catch (err) {
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              liked_by_me: wasLiked,
+              likes_count: Math.max(0, (prev.likes_count || 0) + (wasLiked ? 1 : -1)),
+            }
+          : prev,
+      );
+      setError(err.message || "failed to update like");
+    } finally {
+      setIsLikeLoading(false);
+    }
+  };
 
   return (
     <div className="feed-bg noise-layer relative min-h-screen text-slate-100">
@@ -99,6 +158,21 @@ export default function PostPage() {
                 loading="lazy"
               />
             )}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                disabled={isLikeLoading}
+                className={`rounded-xl border px-3 py-1.5 text-sm transition ${
+                  post.liked_by_me
+                    ? "border-emerald-500/60 bg-emerald-500/20 text-emerald-200"
+                    : "border-slate-700/70 bg-slate-950/70 text-slate-300 hover:border-emerald-400/50"
+                } disabled:opacity-60`}
+              >
+                {post.liked_by_me ? "unlike" : "like"}
+              </button>
+              <span className="text-xs text-slate-400">likes: {post.likes_count || 0}</span>
+            </div>
           </article>
         )}
       </div>

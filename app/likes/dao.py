@@ -16,16 +16,22 @@ class LikesDao(BaseDAO):
     @classmethod
     async def like(cls, post_id: int, user_id: int):
         async with async_session() as session:
-            query = insert(Likes).values(Likes.post_id == post_id, Likes.user_id == user_id)
+            query = insert(Likes).values(post_id=post_id, user_id=user_id)
             await session.execute(query)
             await session.commit()
+
+
 
     @classmethod
     async def delete_like(cls, post_id: int, user_id: int):
         async with async_session() as session:
-            query = delete(Likes).filter_by(Likes.post_id == post_id, Likes.user_id == user_id)
-            await session.execute(query)
+            query = delete(Likes).where(
+                Likes.post_id == post_id,
+                Likes.user_id == user_id,
+            )
+            result = await session.execute(query)
             await session.commit()
+            return (result.rowcount or 0) > 0
 
     @classmethod
     async def count_likes(cls, post_id: int) -> int:
@@ -37,7 +43,7 @@ class LikesDao(BaseDAO):
     @classmethod
     async def liked_by_me(cls, user_id: int, post_id: int):
         async with async_session() as session:
-            query = select(Likes.id).where(
+            query = select(Likes).where(
                 Likes.user_id == user_id,
                 Likes.post_id == post_id,
             )

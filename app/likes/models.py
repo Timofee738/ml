@@ -7,8 +7,8 @@ class Likes(Base):
     __tablename__ = 'likes'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    post_id: Mapped[int] = mapped_column(ForeignKey('posts.id'), ondelete='CASCADE')
-    user_id: Mapped[int] = mapped_column(ForeignKey('user.id'), ondelete='CASCADE')
+    post_id: Mapped[int] = mapped_column(ForeignKey('posts.id'))
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
 
     __table_args__ = (

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Text, String, func, Integer
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
-
+from pgvector.sqlalchemy import Vector
 
 if TYPE_CHECKING:
     from app.users.models import User
@@ -14,12 +14,20 @@ class Post(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=False)
-    
+
+    title: Mapped[str] = mapped_column(Text, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     likes: Mapped[int] = mapped_column(Integer, default=0)
     
+    topic: Mapped[Optional[str]] = mapped_column(String(50))
+    embedding: Mapped[list[float]] = mapped_column(Vector(768), nullable=True)
+        
     author: Mapped['User'] = relationship(back_populates='posts')
+    
+    class Config:
+        orm_mode = True
+        
     
     
