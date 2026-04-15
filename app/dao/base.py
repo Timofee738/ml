@@ -14,9 +14,9 @@ class BaseDAO:
         
         
     @classmethod
-    async def find_all(cls):
+    async def find_all(cls, limit: int = 20):
         async with async_session() as session:
-            query = (select(cls.model).options(joinedload(cls.model.author)).order_by(cls.model.created_at.desc()))
+            query = (select(cls.model).options(joinedload(cls.model.author)).order_by(cls.model.created_at.desc()).limit(limit))
             
             result = await session.execute(query)
             return result.scalars().all()

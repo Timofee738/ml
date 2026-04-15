@@ -1,4 +1,4 @@
-import os
+from datetime import datetime
 
 from fastapi import UploadFile, File, Form
 from pydantic import BaseModel, Field
@@ -18,6 +18,21 @@ class PostResponse(BaseModel):
     content: str
     image_url: str | None = None
     likes_count: int
+
+    class Config:
+        from_attributes = True
+
+
+
+class SPost(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    content: str
+    image_url: str | None
+    created_at: datetime
+    likes: int
+    topic: str | None
 
     class Config:
         from_attributes = True

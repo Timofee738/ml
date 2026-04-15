@@ -3,14 +3,15 @@ import uuid
 
 import aiofiles
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+
 from app.posts.dao import PostDAO
+from app.users.dao import UserDAO
 from app.users.dependencies import get_current_user
 from app.users.models import User
 from app.likes.dao import LikesDao
-from app.posts.schemas import PostResponse
+from app.posts.schemas import PostResponse, SPost
 
 from app.posts.utils import get_embedding
-
 
 posts_router = APIRouter(
     prefix='/posts',
@@ -68,24 +69,27 @@ async def create_post(
     
     return {'message': 'Post added'}
 
-@posts_router.get('/all')
-async def all_post():
-    posts = await PostDAO.find_all()
-    end_posts: list[PostResponse] = []
-    for post in posts:
-        likes_count = await LikesDao.count_likes(post_id=post.id)
-        end_post = PostResponse(
-            id=post.id,
-            user_id=post.user_id,
-            title=post.title,
-            content=post.content,
-            image_url=post.image_url,
-            created_at=post.created_at,
-            likes_count=likes_count,
-        )
-        end_posts.append(end_post)
-            
-    return end_posts
+
+
+
+@posts_router.get('/recommendations', response_model=list[SPost])
+async def get_recommendations(user: User = Depends(get_current_user)):
+
+    user_vector = await UserDAO.get_user_interests_vector(user_id=user.id)
+
+    if user_vector is None:
+        return await PostDAO.find_all(limit=10)
+
+
+    recommendations = await PostDAO.get_recommendations(
+        user_id=user.id,
+        user_vector=user_vector,
+    )
+
+    return recommendations
+
+
+
         
 @posts_router.get('/user_posts')
 async def get_user_posts(user: User = Depends(get_current_user)):

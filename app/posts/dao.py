@@ -1,4 +1,5 @@
 from app.dao.base import BaseDAO
+from app.likes.models import Likes
 from app.posts.models import Post
 from app.database import async_session
 from sqlalchemy import select, insert
@@ -25,3 +26,18 @@ class PostDAO(BaseDAO):
             )
             result = await session.execute(query)
             return result.scalars().one_or_none()
+
+    @classmethod
+    async def get_recommendations(cls, user_id: int, user_vector: list[float], limit: int = 10):
+        async with async_session() as session:
+            liked_posts_query = select(Likes.post_id).where(Likes.user_id == user_id)
+
+            query = (
+                select(Post)
+                .filter(~Post.id.in_(liked_posts_query))
+                .ordered_by(Post.embedding.cosine_distance(user_vector))
+                .limit(limit)
+            )
+            result = await session.execute(query)
+            return result.scalars().all()
+
