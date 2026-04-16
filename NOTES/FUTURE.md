@@ -1,5 +1,0 @@
-# FUTURE
-
-IMAGES
-
-Design
