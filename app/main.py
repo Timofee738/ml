@@ -18,10 +18,14 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 async def root():
     return {'status': 'ok'}
 
+origins = [
+    "https://stellar-panda-eee493.netlify.app/",
+    'http://localhost:5173',
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://stellar-panda-eee493.netlify.app/"], # Адрес твоего Vite
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
