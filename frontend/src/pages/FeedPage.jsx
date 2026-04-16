@@ -35,7 +35,7 @@ export default function FeedPage() {
   const fetchPosts = async () => {
     setError("");
     try {
-      const response = await fetch(`${API_URL}/posts/all`, {
+      const response = await fetch(`${API_URL}/posts/recommendations`, {
         method: "GET",
         credentials: "include",
       });
@@ -387,7 +387,7 @@ export default function FeedPage() {
                     >
                       {post.liked_by_me ? "unlike" : "like"}
                     </button>
-                    <span className="text-xs text-slate-400">likes: {post.likes_count || 0}</span>
+                    <span className="text-xs text-slate-400">{post.likes_count || 0}</span>
                   </div>
                 </article>
               ))

@@ -21,7 +21,7 @@ async def root():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], # Адрес твоего Vite
+    allow_origins=["https://stellar-panda-eee493.netlify.app/"], # Адрес твоего Vite
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -9,7 +9,7 @@ BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 POSTS_URL = f"{BASE_URL}/posts/create"
 TOKEN = os.getenv(
     "ACCESS_TOKEN",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzc2MjI5NTcwfQ.9wQTl3Va5p4SORBVtlZlfTKioZ3lVgidaeb3r3uXOf4",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzc2MzE1MTg4fQ.qf2Cs04C1IXDmyhcVvNHQEU6vUM2ODSVylFQ2jmbVOA",
 )
 MODEL_NAME = os.getenv("OLLAMA_MODEL", "qwen2.5-coder:7b")
 EMBEDDING_MODEL = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")

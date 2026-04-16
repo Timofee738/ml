@@ -13,7 +13,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/confirm" element={<EmailConfirmPage />} />
-        <Route path="/" element={<FeedPage />} />
+        <Route path="/" element={<RegisterPage />} />
         <Route path="/feed" element={<FeedPage />} />
         <Route path="/posts/:postId" element={<PostPage />} />
         <Route path="/profile" element={<ProfilePage />} />
