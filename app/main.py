@@ -7,8 +7,7 @@ import os
 
 app = FastAPI()
 
-app.include_router(users_router)
-app.include_router(posts_router)
+
 
 os.makedirs("media/posts", exist_ok=True)
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -31,3 +30,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(users_router)
+app.include_router(posts_router)
