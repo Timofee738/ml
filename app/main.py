@@ -19,7 +19,8 @@ async def root():
     return {'status': 'ok'}
 
 origins = [
-    "https://stellar-panda-eee493.netlify.app/",
+    "https://stellar-panda-eee493.netlify.app/"
+    "https://stellar-panda-eee493.netlify.app",
     'http://localhost:5173',
 ]
 
