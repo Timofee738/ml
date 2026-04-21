@@ -24,6 +24,12 @@ redis_client = aioredis.from_url(
     decode_responses=True
 )
 
+COOKIE_SETTINGS = {
+    "httponly": True,
+    "samesite": "none",
+    "secure": True,
+}
+
 
 
 @users_router.post('/register')
@@ -66,8 +72,8 @@ async def confirm_email(token: str, response: Response):
     access_token = create_access_token({'sub': str(user.id)})
     refresh_token = create_refresh_token({'sub': str(user.id)})
     
-    response.set_cookie('user_access_token',access_token)
-    response.set_cookie('user_refresh_token', refresh_token)
+    response.set_cookie('user_access_token', access_token, **COOKIE_SETTINGS)
+    response.set_cookie('user_refresh_token', refresh_token, **COOKIE_SETTINGS)
     
     return {'message': 'Email verified'}
 
@@ -109,10 +115,10 @@ async def login_user(response: Response, user_data: AuthUser):
     access_token = create_access_token({'sub': str(user.id)})
     refresh_token = create_refresh_token({'sub': str(user.id)})
     
-    response.set_cookie('user_access_token',access_token)
-    response.set_cookie('user_refresh_token', refresh_token)
+    response.set_cookie('user_access_token', access_token, **COOKIE_SETTINGS)
+    response.set_cookie('user_refresh_token', refresh_token, **COOKIE_SETTINGS)
     
-    return {'access_token': access_token, 'refresh_token': refresh_token}
+    return {'message': 'Login successful'}
 
 @users_router.get('/profile')
 async def get_user(user: User = Depends(get_current_user)):
@@ -146,7 +152,7 @@ async def refresh_token(response: Response, request: Request):
         response.set_cookie(
             'user_access_token',
             new_access_token,
-            httponly=True
+            **COOKIE_SETTINGS,
         )
         return {'message': 'Token updated'}
     
@@ -157,10 +163,10 @@ async def refresh_token(response: Response, request: Request):
 
 
 @users_router.post('/delete')
-async def delete_user(user_id: int):
-    user = await UserDAO.find_one_or_none(id=user_id)
+async def delete_user(user: User = Depends(get_current_user)):
+    user = await UserDAO.find_one_or_none(id=user.id)
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
     
-    await UserDAO.delete(id=user_id)
+    await UserDAO.delete(id=user.id)
     return {'message': f'User with {user.email} deleted successfully'}

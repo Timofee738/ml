@@ -86,6 +86,9 @@ async def get_recommendations(user: User = Depends(get_current_user)):
         user_vector=user_vector,
     )
 
+    if not recommendations:
+        return await PostDAO.find_all(limit=10)
+
     return recommendations
 
 

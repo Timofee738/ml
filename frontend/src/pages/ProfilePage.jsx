@@ -118,6 +118,7 @@ export default function ProfilePage() {
 
   if (loading) return <div className="feed-bg min-h-screen p-8 text-center text-slate-200">loading profile...</div>;
   if (error) return <div className="feed-bg min-h-screen p-8 text-center text-red-300">{error}</div>;
+  if (!user) return <div className="feed-bg min-h-screen p-8 text-center text-slate-200">loading profile...</div>;
 
   return (
     <div className="feed-bg noise-layer relative min-h-screen p-4 text-slate-100">

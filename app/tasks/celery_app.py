@@ -14,10 +14,3 @@ celery_instance.conf.update(
     timezone='Europe/Moscow',
     enable_utc=True
 )
-
-celery_instance.conf.beat_schedule = {
-    "check-all-sites-every-minute": {
-        "task": "app.tasks.tasks.check_all_sites", 
-        "schedule": crontab(minute="*"), 
-    },
-}

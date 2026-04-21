@@ -34,10 +34,9 @@ class PostDAO(BaseDAO):
 
             query = (
                 select(Post)
-                .filter(~Post.id.in_(liked_posts_query))
-                .order_by(Post.embedding.cosine_distance(user_vector))
+                .filter(~Post.id.in_(liked_posts_query), Post.embedding.is_not(None))
+                .order_by(Post.embedding.cosine_distance(user_vector).asc())
                 .limit(limit)
             )
             result = await session.execute(query)
             return result.scalars().all()
-
