@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     
-    REDIS_HOST: str
-    REDIS_PORT: int
+    REDIS_URL: str = "redis://localhost:6379"
     
     SMTP_HOST: str
     SMTP_PORT: int
@@ -24,12 +23,6 @@ class Settings(BaseSettings):
         return (
             f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@'
             f'{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
-        )
-
-    @property
-    def REDIS_URL(self) -> str:
-        return (
-            f'redis://{self.REDIS_HOST}:{self.REDIS_PORT}'
         )
         
     model_config = SettingsConfigDict(env_file=".env", extra='ignore')
