@@ -1,11 +1,12 @@
 from celery import Celery
 from celery.schedules import crontab
 
+from app.config import settings
 
 celery_instance = Celery(
     'tasks',
-    broker="redis://redis:6379/0",
-    backend="redis://redis:6379/0",
+    broker=settings.REDIS_URL,
+    backend=settings.REDIS_URL,
     include=['app.tasks.tasks']
 )
 
