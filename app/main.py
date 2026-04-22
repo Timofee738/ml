@@ -21,6 +21,7 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     'https://ml-production-1920.up.railway.app',
+    'https://vigilant-serenity-production-846a.up.railway.app'
 ]
 
 app.add_middleware(
