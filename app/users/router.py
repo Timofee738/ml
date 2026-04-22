@@ -11,6 +11,7 @@ from jose import jwt, JWTError
 from app.config import settings
 from redis import asyncio as aioredis
 from app.tasks.tasks import send_confirmation_email
+from app.config import REDIS_URL
 
 
 
@@ -20,7 +21,7 @@ from app.tasks.tasks import send_confirmation_email
 users_router = APIRouter(prefix='/users', tags=['users'])
 
 redis_client = aioredis.from_url(
-    f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", 
+    REDIS_URL,
     decode_responses=True
 )
 
