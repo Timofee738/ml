@@ -46,7 +46,7 @@ services:
     environment:
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_HOST: ai_image_postgres
+      DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-ai_image_db}
       SECRET_KEY: ${SECRET_KEY}
