@@ -21,7 +21,7 @@ from app.config import settings
 users_router = APIRouter(prefix='/users', tags=['users'])
 
 redis_client = aioredis.from_url(
-    settings.REDIS_URL,
+    settings.get_redis_url(),
     decode_responses=True
 )
 
