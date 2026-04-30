@@ -27,8 +27,8 @@ redis_client = aioredis.from_url(
 
 COOKIE_SETTINGS = {
     "httponly": True,
-    "samesite": "none",
-    "secure": True,
+    "samesite": "lax",
+    "secure": False,
 }
 
 

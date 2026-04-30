@@ -1,6 +1,83 @@
+# services:
+#   postgres:
+#     image: pgvector/pgvector:pg16
+#     container_name: ai_image_postgres
+#     restart: always
+#     environment:
+#       POSTGRES_USER: ${DB_USER}
+#       POSTGRES_PASSWORD: ${DB_PASSWORD}
+#       POSTGRES_DB: ${DB_NAME}
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     networks:
+#       - ai_network
+
+#   redis:
+#     image: redis:7-alpine
+#     container_name: ai_image_redis
+#     restart: always
+#     networks:
+#       - ai_network
+
+#   app:
+#     build: .
+#     container_name: ai_image_app
+#     restart: always
+#     env_file: .env
+#     depends_on:
+#       - postgres
+#       - redis
+#     networks:
+#       - ai_network
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#     container_name: ai_image_frontend
+#     ports:
+#       - "3000:80"
+#     depends_on:
+#       - app
+#     networks:
+#       - ai_network
+
+#   celery_worker:
+#     build: .
+#     container_name: ai_image_worker
+#     restart: always
+#     env_file: .env
+#     command: celery -A app.tasks.celery_app:celery_instance worker --loglevel=info
+#     depends_on:
+#       - redis
+#     networks:
+#       - ai_network
+
+#   nginx:
+#     image: nginx:latest
+#     container_name: ai_image_nginx
+#     restart: always
+#     ports:
+#       - "80:80" 
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+#     depends_on:
+#       - app
+#     networks:
+#       - ai_network
+
+# networks:
+#   ai_network:
+#     driver: bridge
+
+# volumes:
+#   postgres_data:
+
+
+
+
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    image: pgvector/pgvector:pg15
     container_name: ai_image_postgres
     restart: always
     environment:
@@ -21,6 +98,7 @@ services:
 
   app:
     build: .
+    image: ai_image_backend:latest
     container_name: ai_image_app
     restart: always
     env_file: .env
@@ -29,20 +107,22 @@ services:
       - redis
     networks:
       - ai_network
+    environment:
+      OLLAMA_HOSTS: http://ollama:11434
+
 
   frontend:
     build:
       context: ./frontend
     container_name: ai_image_frontend
-    ports:
-      - "3000:80"
+    restart: always
     depends_on:
       - app
     networks:
       - ai_network
 
   celery_worker:
-    build: .
+    image: ai_image_backend:latest
     container_name: ai_image_worker
     restart: always
     env_file: .env
@@ -51,19 +131,33 @@ services:
       - redis
     networks:
       - ai_network
+    environment:
+      OLLAMA_HOSTS: http://ollama:11434
+
 
   nginx:
     image: nginx:latest
     container_name: ai_image_nginx
     restart: always
     ports:
-      - "80:80" 
+      - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - app
+      - frontend
     networks:
       - ai_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai_image_ollama
+    restart: always
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ai_network
+
 
 networks:
   ai_network:
@@ -71,3 +165,4 @@ networks:
 
 volumes:
   postgres_data:
+  ollama_data:
